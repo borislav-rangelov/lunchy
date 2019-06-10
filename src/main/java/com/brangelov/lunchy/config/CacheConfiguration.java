@@ -43,6 +43,13 @@ public class CacheConfiguration {
             createCache(cm, com.brangelov.lunchy.domain.User.class.getName());
             createCache(cm, com.brangelov.lunchy.domain.Authority.class.getName());
             createCache(cm, com.brangelov.lunchy.domain.User.class.getName() + ".authorities");
+            createCache(cm, com.brangelov.lunchy.domain.Restaurant.class.getName());
+            createCache(cm, com.brangelov.lunchy.domain.Restaurant.class.getName() + ".restaurantLocations");
+            createCache(cm, com.brangelov.lunchy.domain.Restaurant.class.getName() + ".menus");
+            createCache(cm, com.brangelov.lunchy.domain.RestaurantLocation.class.getName());
+            createCache(cm, com.brangelov.lunchy.domain.Menu.class.getName());
+            createCache(cm, com.brangelov.lunchy.domain.Menu.class.getName() + ".menuItems");
+            createCache(cm, com.brangelov.lunchy.domain.MenuItem.class.getName());
             // jhipster-needle-ehcache-add-entry
         };
     }

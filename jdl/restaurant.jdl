@@ -1,0 +1,49 @@
+/**
+ * The Restaurant entity.
+ */
+ @paginate(infinite-scroll)
+entity Restaurant {
+    name String required minlength(3) maxlength(50)
+}
+
+/**
+ * The RestaurantLocation entity.
+ */
+ @paginate(infinite-scroll)
+entity RestaurantLocation {
+    name String required minlength(3) maxlength(50)
+    locationString String maxlength(2500)
+}
+
+/**
+ * The Menu entity.
+ */
+ @paginate(pager)
+entity Menu {
+    name String required minlength(3) maxlength(50)
+    validFrom Instant required
+    validTo Instant
+}
+
+/**
+ * The MenuItem entity.
+ */
+ @paginate(infinite-scroll)
+entity MenuItem {
+    name String required minlength(3) maxlength(50)
+    description String maxlength(6000)
+    price Integer required min(0)
+    grams Integer required min(0)
+}
+
+relationship OneToMany {
+    Restaurant to RestaurantLocation{restaurant required}
+}
+
+relationship OneToMany {
+    Restaurant to Menu{restaurant required}
+}
+
+relationship OneToMany {
+    Menu to MenuItem{menu required}
+}

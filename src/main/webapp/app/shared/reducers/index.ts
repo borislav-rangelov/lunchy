@@ -12,6 +12,22 @@ import activate, { ActivateState } from 'app/modules/account/activate/activate.r
 import password, { PasswordState } from 'app/modules/account/password/password.reducer';
 import settings, { SettingsState } from 'app/modules/account/settings/settings.reducer';
 import passwordReset, { PasswordResetState } from 'app/modules/account/password-reset/password-reset.reducer';
+// prettier-ignore
+import restaurant, {
+  RestaurantState
+} from 'app/entities/restaurant/restaurant.reducer';
+// prettier-ignore
+import restaurantLocation, {
+  RestaurantLocationState
+} from 'app/entities/restaurant-location/restaurant-location.reducer';
+// prettier-ignore
+import menu, {
+  MenuState
+} from 'app/entities/menu/menu.reducer';
+// prettier-ignore
+import menuItem, {
+  MenuItemState
+} from 'app/entities/menu-item/menu-item.reducer';
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
 
 export interface IRootState {
@@ -25,6 +41,10 @@ export interface IRootState {
   readonly passwordReset: PasswordResetState;
   readonly password: PasswordState;
   readonly settings: SettingsState;
+  readonly restaurant: RestaurantState;
+  readonly restaurantLocation: RestaurantLocationState;
+  readonly menu: MenuState;
+  readonly menuItem: MenuItemState;
   /* jhipster-needle-add-reducer-type - JHipster will add reducer type here */
   readonly loadingBar: any;
 }
@@ -40,6 +60,10 @@ const rootReducer = combineReducers<IRootState>({
   passwordReset,
   password,
   settings,
+  restaurant,
+  restaurantLocation,
+  menu,
+  menuItem,
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
   loadingBar
 });

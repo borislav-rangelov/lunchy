@@ -1,0 +1,23 @@
+{
+  "lunchyApp": {
+    "restaurantLocation": {
+      "home": {
+        "title": "Restaurant Locations",
+        "createLabel": "Create a new Restaurant Location",
+        "createOrEditLabel": "Create or edit a Restaurant Location"
+      },
+      "created": "A new Restaurant Location is created with identifier {{ param }}",
+      "updated": "A Restaurant Location is updated with identifier {{ param }}",
+      "deleted": "A Restaurant Location is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Restaurant Location {{ id }}?"
+      },
+      "detail": {
+        "title": "Restaurant Location"
+      },
+      "name": "Name",
+      "locationString": "Location String",
+      "restaurant": "Restaurant"
+    }
+  }
+}
