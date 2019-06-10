@@ -1,0 +1,40 @@
+{
+  "generator-jhipster": {
+    "promptValues": {
+      "packageName": "com.brangelov.lunchy",
+      "nativeLanguage": "en"
+    },
+    "jhipsterVersion": "6.0.1",
+    "applicationType": "monolith",
+    "baseName": "lunchy",
+    "packageName": "com.brangelov.lunchy",
+    "packageFolder": "com/brangelov/lunchy",
+    "serverPort": "8080",
+    "authenticationType": "jwt",
+    "cacheProvider": "ehcache",
+    "enableHibernateCache": true,
+    "websocket": false,
+    "databaseType": "sql",
+    "devDatabaseType": "h2Disk",
+    "prodDatabaseType": "mysql",
+    "searchEngine": false,
+    "messageBroker": false,
+    "serviceDiscoveryType": false,
+    "buildTool": "maven",
+    "enableSwaggerCodegen": false,
+    "jwtSecretKey": "NTE0YzFkMzU4OGU2ZmY5ZjFmY2QxN2U0YzI2YmMzODFkNzU0Y2UxODRkMDc0MGQwM2M2ZGFhN2JhYTViNTE3MzZlODdlN2Y5M2E1ODQ0NDY1ZGVjOGVmMzUxODhjMDNjMTNjZGM4NjBjMjQ0YTA2NGI3Zjg3NThkNGMxNzQzZmM=",
+    "clientFramework": "react",
+    "clientTheme": "none",
+    "clientThemeVariant": "",
+    "useSass": true,
+    "clientPackageManager": "npm",
+    "testFrameworks": [],
+    "jhiPrefix": "jhi",
+    "entitySuffix": "",
+    "dtoSuffix": "DTO",
+    "otherModules": [],
+    "enableTranslation": true,
+    "nativeLanguage": "en",
+    "languages": ["en"]
+  }
+}
