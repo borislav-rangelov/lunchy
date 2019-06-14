@@ -4,6 +4,7 @@ import {
   loadMoreDataWhenScrolled,
   ICrudGetAction,
   ICrudGetAllAction,
+  ICrudSearchAction,
   ICrudPutAction,
   ICrudDeleteAction
 } from 'react-jhipster';
@@ -15,6 +16,7 @@ import { IRestaurant, defaultValue } from 'app/shared/model/restaurant.model';
 
 export const ACTION_TYPES = {
   FETCH_RESTAURANT_LIST: 'restaurant/FETCH_RESTAURANT_LIST',
+  FETCH_RESTAURANT_LIST_BY_NAME: 'restaurant/FETCH_RESTAURANT_LIST_BY_NAME',
   FETCH_RESTAURANT: 'restaurant/FETCH_RESTAURANT',
   CREATE_RESTAURANT: 'restaurant/CREATE_RESTAURANT',
   UPDATE_RESTAURANT: 'restaurant/UPDATE_RESTAURANT',
@@ -40,6 +42,7 @@ export type RestaurantState = Readonly<typeof initialState>;
 export default (state: RestaurantState = initialState, action): RestaurantState => {
   switch (action.type) {
     case REQUEST(ACTION_TYPES.FETCH_RESTAURANT_LIST):
+    case REQUEST(ACTION_TYPES.FETCH_RESTAURANT_LIST_BY_NAME):
     case REQUEST(ACTION_TYPES.FETCH_RESTAURANT):
       return {
         ...state,
@@ -57,6 +60,7 @@ export default (state: RestaurantState = initialState, action): RestaurantState 
         updating: true
       };
     case FAILURE(ACTION_TYPES.FETCH_RESTAURANT_LIST):
+    case FAILURE(ACTION_TYPES.FETCH_RESTAURANT_LIST_BY_NAME):
     case FAILURE(ACTION_TYPES.FETCH_RESTAURANT):
     case FAILURE(ACTION_TYPES.CREATE_RESTAURANT):
     case FAILURE(ACTION_TYPES.UPDATE_RESTAURANT):
@@ -69,6 +73,7 @@ export default (state: RestaurantState = initialState, action): RestaurantState 
         errorMessage: action.payload
       };
     case SUCCESS(ACTION_TYPES.FETCH_RESTAURANT_LIST):
+    case SUCCESS(ACTION_TYPES.FETCH_RESTAURANT_LIST_BY_NAME):
       const links = parseHeaderForLinks(action.payload.headers.link);
       return {
         ...state,
@@ -150,6 +155,14 @@ export const deleteEntity: ICrudDeleteAction<IRestaurant> = id => async dispatch
     payload: axios.delete(requestUrl)
   });
   return result;
+};
+
+export const getEntitiesByName: ICrudSearchAction<IRestaurant> = (search, page, size, sort) => {
+  const requestUrl = `${apiUrl}${sort ? `?search=${search}&page=${page}&size=${size}&sort=${sort}` : ''}`;
+  return {
+    type: ACTION_TYPES.FETCH_RESTAURANT_LIST_BY_NAME,
+    payload: axios.get<IRestaurant>(requestUrl)
+  };
 };
 
 export const reset = () => ({

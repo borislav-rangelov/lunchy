@@ -9,6 +9,7 @@ import { Row, Col, Alert } from 'reactstrap';
 import { IRootState } from 'app/shared/reducers';
 import { getSession } from 'app/shared/reducers/authentication';
 import FavoriteRestaurants from './favorite-restaurants';
+import SearchRestaurants from './search-restaurants';
 
 export interface IHomeProp extends StateProps, DispatchProps {}
 
@@ -21,18 +22,21 @@ export class Home extends React.Component<IHomeProp> {
     const { account } = this.props;
     return (
       <Row>
-        <Col md="9">
-          <h2>
-            <span>Welcome, {account.firstName}!</span>
-            {/* <Translate contentKey="home.title">{`Welcome, ${account.firstName}!`}</Translate> */}
-          </h2>
-          <p className="lead">
-            <Translate contentKey="home.subtitle">This is your homepage</Translate>
-          </p>
+        <Col>
           {account && account.login ? (
-            <FavoriteRestaurants />
+            <React.Fragment>
+              <h1>
+                <span>Welcome, {account.firstName}!</span>
+                {/* <Translate contentKey="home.title">{`Welcome, ${account.firstName}!`}</Translate> */}
+              </h1>
+              <h2>Favorite restaurants</h2>
+              <FavoriteRestaurants />
+              <hr />
+              <SearchRestaurants />
+            </React.Fragment>
           ) : (
             <div>
+              <h1>Wellcome to the Lunchy application</h1>
               <Alert color="warning">
                 <Translate contentKey="global.messages.info.authenticated.prefix">If you want to </Translate>
                 <Link to="/login" className="alert-link">
@@ -53,9 +57,6 @@ export class Home extends React.Component<IHomeProp> {
               </Alert>
             </div>
           )}
-        </Col>
-        <Col md="3" className="pad">
-          <span className="hipster rounded" />
         </Col>
       </Row>
     );
