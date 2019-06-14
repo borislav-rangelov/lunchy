@@ -1,9 +1,12 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Row, Col, Alert, Input } from 'reactstrap';
-import { getEntities } from 'app/entities/restaurant/restaurant.reducer';
+import { getEntitiesByName } from 'app/entities/restaurant/restaurant.reducer';
+import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 
-export interface ISearchRestaurantsProp extends StateProps, DispatchProps {}
+import { debounce } from 'lodash';
+
+export interface ISearchRestaurantsProp extends StateProps, DispatchProps, RouteComponentProps<{ id: string }> {}
 
 export interface ISearchRestaurantsState {
   searchTerm: string;
@@ -14,23 +17,36 @@ export class SearchRestaurants extends React.Component<ISearchRestaurantsProp, I
     searchTerm: ''
   };
 
-  componentDidMount() {}
+  searchForRestaurants = debounce(() => {
+    this.props.getEntitiesByName(this.state.searchTerm);
+  }, 300);
+
+  onRestaurantClick = (event): void => {
+    console.log(event.target.dataset.id);
+    // this.props.history.push(``);
+  };
 
   onSearchTermChange = event => {
-    this.setState({ searchTerm: event.target.value });
-    this.props.getEntities();
+    this.setState({ searchTerm: event.target.value }, this.searchForRestaurants);
   };
 
   render() {
     const { restaurants } = this.props;
     const { searchTerm } = this.state;
-    const filteredRestaurants = restaurants.filter(r => r.name.toLowerCase().indexOf(searchTerm.toLowerCase()) > -1);
+    // const filteredRestaurants = restaurants.filter(r => r.name.toLowerCase().indexOf(searchTerm.toLowerCase()) > -1);
     return (
       <Row>
         <Col>
           <h2>Restaurants</h2>
           <Input value={searchTerm} onChange={this.onSearchTermChange} placeholder="Start searching for restaurants here..." />
-          <ul>{filteredRestaurants && filteredRestaurants.map(restaurant => <li>{restaurant.name}</li>)}</ul>
+          <ul>
+            {restaurants &&
+              restaurants.map(restaurant => (
+                <li key={restaurant.id} data-id={restaurant.id} onClick={this.onRestaurantClick}>
+                  {restaurant.name}
+                </li>
+              ))}
+          </ul>
         </Col>
       </Row>
     );
@@ -44,13 +60,15 @@ const mapStateToProps = storeState => ({
 });
 
 const mapDispatchToProps = {
-  getEntities
+  getEntitiesByName
 };
 
 type StateProps = ReturnType<typeof mapStateToProps>;
 type DispatchProps = typeof mapDispatchToProps;
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(SearchRestaurants);
+export default withRouter(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )(SearchRestaurants)
+);

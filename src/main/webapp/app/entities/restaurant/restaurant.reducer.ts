@@ -158,7 +158,7 @@ export const deleteEntity: ICrudDeleteAction<IRestaurant> = id => async dispatch
 };
 
 export const getEntitiesByName: ICrudSearchAction<IRestaurant> = (search, page, size, sort) => {
-  const requestUrl = `${apiUrl}${sort ? `?search=${search}&page=${page}&size=${size}&sort=${sort}` : ''}`;
+  const requestUrl = `${apiUrl}?name.contains=${search}`;
   return {
     type: ACTION_TYPES.FETCH_RESTAURANT_LIST_BY_NAME,
     payload: axios.get<IRestaurant>(requestUrl)
