@@ -145,6 +145,16 @@ export const deleteEntity: ICrudDeleteAction<IMenu> = id => async dispatch => {
   return result;
 };
 
+export const getMenuItemsForRestaurant: any = id => async dispatch => {
+  const requestUrl = `${apiUrl}?restaurantId.equals=${id}`;
+  const result = await dispatch({
+    type: ACTION_TYPES.FETCH_MENU,
+    payload: axios.get<IMenu>(requestUrl)
+  });
+
+  return result;
+};
+
 export const reset = () => ({
   type: ACTION_TYPES.RESET
 });

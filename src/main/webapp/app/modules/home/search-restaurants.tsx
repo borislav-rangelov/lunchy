@@ -22,8 +22,7 @@ export class SearchRestaurants extends React.Component<ISearchRestaurantsProp, I
   }, 300);
 
   onRestaurantClick = (event): void => {
-    console.log(event.target.dataset.id);
-    // this.props.history.push(``);
+    this.props.history.push(`/preview-restaurant/${event.target.dataset.id}`);
   };
 
   onSearchTermChange = event => {
