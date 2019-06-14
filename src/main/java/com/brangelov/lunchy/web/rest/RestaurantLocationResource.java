@@ -1,9 +1,10 @@
 package com.brangelov.lunchy.web.rest;
 
 import com.brangelov.lunchy.domain.RestaurantLocation;
-import com.brangelov.lunchy.repository.RestaurantLocationRepository;
+import com.brangelov.lunchy.service.RestaurantLocationQueryService;
+import com.brangelov.lunchy.service.RestaurantLocationService;
+import com.brangelov.lunchy.service.dto.RestaurantLocationCriteria;
 import com.brangelov.lunchy.web.rest.errors.BadRequestAlertException;
-
 import io.github.jhipster.web.util.HeaderUtil;
 import io.github.jhipster.web.util.PaginationUtil;
 import io.github.jhipster.web.util.ResponseUtil;
@@ -13,16 +14,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -40,10 +39,13 @@ public class RestaurantLocationResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
-    private final RestaurantLocationRepository restaurantLocationRepository;
+    private final RestaurantLocationService restaurantLocationService;
 
-    public RestaurantLocationResource(RestaurantLocationRepository restaurantLocationRepository) {
-        this.restaurantLocationRepository = restaurantLocationRepository;
+    private final RestaurantLocationQueryService restaurantLocationQueryService;
+
+    public RestaurantLocationResource(RestaurantLocationService restaurantLocationService, RestaurantLocationQueryService restaurantLocationQueryService) {
+        this.restaurantLocationService = restaurantLocationService;
+        this.restaurantLocationQueryService = restaurantLocationQueryService;
     }
 
     /**
@@ -59,7 +61,7 @@ public class RestaurantLocationResource {
         if (restaurantLocation.getId() != null) {
             throw new BadRequestAlertException("A new restaurantLocation cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        RestaurantLocation result = restaurantLocationRepository.save(restaurantLocation);
+        RestaurantLocation result = restaurantLocationService.save(restaurantLocation);
         return ResponseEntity.created(new URI("/api/restaurant-locations/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
             .body(result);
@@ -80,7 +82,7 @@ public class RestaurantLocationResource {
         if (restaurantLocation.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        RestaurantLocation result = restaurantLocationRepository.save(restaurantLocation);
+        RestaurantLocation result = restaurantLocationService.save(restaurantLocation);
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, restaurantLocation.getId().toString()))
             .body(result);
@@ -90,14 +92,27 @@ public class RestaurantLocationResource {
      * {@code GET  /restaurant-locations} : get all the restaurantLocations.
      *
      * @param pageable the pagination information.
+     * @param criteria the criteria which the requested entities should match.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of restaurantLocations in body.
      */
     @GetMapping("/restaurant-locations")
-    public ResponseEntity<List<RestaurantLocation>> getAllRestaurantLocations(Pageable pageable, @RequestParam MultiValueMap<String, String> queryParams, UriComponentsBuilder uriBuilder) {
-        log.debug("REST request to get a page of RestaurantLocations");
-        Page<RestaurantLocation> page = restaurantLocationRepository.findAll(pageable);
+    public ResponseEntity<List<RestaurantLocation>> getAllRestaurantLocations(RestaurantLocationCriteria criteria, Pageable pageable, @RequestParam MultiValueMap<String, String> queryParams, UriComponentsBuilder uriBuilder) {
+        log.debug("REST request to get RestaurantLocations by criteria: {}", criteria);
+        Page<RestaurantLocation> page = restaurantLocationQueryService.findByCriteria(criteria, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(uriBuilder.queryParams(queryParams), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    /**
+    * {@code GET  /restaurant-locations/count} : count all the restaurantLocations.
+    *
+    * @param criteria the criteria which the requested entities should match.
+    * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
+    */
+    @GetMapping("/restaurant-locations/count")
+    public ResponseEntity<Long> countRestaurantLocations(RestaurantLocationCriteria criteria) {
+        log.debug("REST request to count RestaurantLocations by criteria: {}", criteria);
+        return ResponseEntity.ok().body(restaurantLocationQueryService.countByCriteria(criteria));
     }
 
     /**
@@ -109,7 +124,7 @@ public class RestaurantLocationResource {
     @GetMapping("/restaurant-locations/{id}")
     public ResponseEntity<RestaurantLocation> getRestaurantLocation(@PathVariable Long id) {
         log.debug("REST request to get RestaurantLocation : {}", id);
-        Optional<RestaurantLocation> restaurantLocation = restaurantLocationRepository.findById(id);
+        Optional<RestaurantLocation> restaurantLocation = restaurantLocationService.findOne(id);
         return ResponseUtil.wrapOrNotFound(restaurantLocation);
     }
 
@@ -122,7 +137,7 @@ public class RestaurantLocationResource {
     @DeleteMapping("/restaurant-locations/{id}")
     public ResponseEntity<Void> deleteRestaurantLocation(@PathVariable Long id) {
         log.debug("REST request to delete RestaurantLocation : {}", id);
-        restaurantLocationRepository.deleteById(id);
+        restaurantLocationService.delete(id);
         return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build();
     }
 }

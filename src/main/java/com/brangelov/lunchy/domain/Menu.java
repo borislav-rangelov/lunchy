@@ -1,19 +1,17 @@
 package com.brangelov.lunchy.domain;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
-import javax.validation.constraints.*;
-
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Objects;
 
 /**
  * A Menu.
@@ -41,8 +39,9 @@ public class Menu implements Serializable {
     @Column(name = "valid_to")
     private Instant validTo;
 
-    @OneToMany(mappedBy = "menu")
+    @OneToMany(mappedBy = "menu", fetch = FetchType.EAGER)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @JsonIgnoreProperties("menu")
     private Set<MenuItem> menuItems = new HashSet<>();
 
     @ManyToOne(optional = false)

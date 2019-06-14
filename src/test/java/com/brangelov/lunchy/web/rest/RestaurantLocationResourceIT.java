@@ -1,11 +1,12 @@
 package com.brangelov.lunchy.web.rest;
 
 import com.brangelov.lunchy.LunchyApp;
-import com.brangelov.lunchy.domain.RestaurantLocation;
 import com.brangelov.lunchy.domain.Restaurant;
+import com.brangelov.lunchy.domain.RestaurantLocation;
 import com.brangelov.lunchy.repository.RestaurantLocationRepository;
+import com.brangelov.lunchy.service.RestaurantLocationQueryService;
+import com.brangelov.lunchy.service.RestaurantLocationService;
 import com.brangelov.lunchy.web.rest.errors.ExceptionTranslator;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
@@ -44,6 +45,12 @@ public class RestaurantLocationResourceIT {
     private RestaurantLocationRepository restaurantLocationRepository;
 
     @Autowired
+    private RestaurantLocationService restaurantLocationService;
+
+    @Autowired
+    private RestaurantLocationQueryService restaurantLocationQueryService;
+
+    @Autowired
     private MappingJackson2HttpMessageConverter jacksonMessageConverter;
 
     @Autowired
@@ -65,7 +72,7 @@ public class RestaurantLocationResourceIT {
     @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        final RestaurantLocationResource restaurantLocationResource = new RestaurantLocationResource(restaurantLocationRepository);
+        final RestaurantLocationResource restaurantLocationResource = new RestaurantLocationResource(restaurantLocationService, restaurantLocationQueryService);
         this.restRestaurantLocationMockMvc = MockMvcBuilders.standaloneSetup(restaurantLocationResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)
@@ -213,6 +220,135 @@ public class RestaurantLocationResourceIT {
 
     @Test
     @Transactional
+    public void getAllRestaurantLocationsByNameIsEqualToSomething() throws Exception {
+        // Initialize the database
+        restaurantLocationRepository.saveAndFlush(restaurantLocation);
+
+        // Get all the restaurantLocationList where name equals to DEFAULT_NAME
+        defaultRestaurantLocationShouldBeFound("name.equals=" + DEFAULT_NAME);
+
+        // Get all the restaurantLocationList where name equals to UPDATED_NAME
+        defaultRestaurantLocationShouldNotBeFound("name.equals=" + UPDATED_NAME);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRestaurantLocationsByNameIsInShouldWork() throws Exception {
+        // Initialize the database
+        restaurantLocationRepository.saveAndFlush(restaurantLocation);
+
+        // Get all the restaurantLocationList where name in DEFAULT_NAME or UPDATED_NAME
+        defaultRestaurantLocationShouldBeFound("name.in=" + DEFAULT_NAME + "," + UPDATED_NAME);
+
+        // Get all the restaurantLocationList where name equals to UPDATED_NAME
+        defaultRestaurantLocationShouldNotBeFound("name.in=" + UPDATED_NAME);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRestaurantLocationsByNameIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        restaurantLocationRepository.saveAndFlush(restaurantLocation);
+
+        // Get all the restaurantLocationList where name is not null
+        defaultRestaurantLocationShouldBeFound("name.specified=true");
+
+        // Get all the restaurantLocationList where name is null
+        defaultRestaurantLocationShouldNotBeFound("name.specified=false");
+    }
+
+    @Test
+    @Transactional
+    public void getAllRestaurantLocationsByLocationStringIsEqualToSomething() throws Exception {
+        // Initialize the database
+        restaurantLocationRepository.saveAndFlush(restaurantLocation);
+
+        // Get all the restaurantLocationList where locationString equals to DEFAULT_LOCATION_STRING
+        defaultRestaurantLocationShouldBeFound("locationString.equals=" + DEFAULT_LOCATION_STRING);
+
+        // Get all the restaurantLocationList where locationString equals to UPDATED_LOCATION_STRING
+        defaultRestaurantLocationShouldNotBeFound("locationString.equals=" + UPDATED_LOCATION_STRING);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRestaurantLocationsByLocationStringIsInShouldWork() throws Exception {
+        // Initialize the database
+        restaurantLocationRepository.saveAndFlush(restaurantLocation);
+
+        // Get all the restaurantLocationList where locationString in DEFAULT_LOCATION_STRING or UPDATED_LOCATION_STRING
+        defaultRestaurantLocationShouldBeFound("locationString.in=" + DEFAULT_LOCATION_STRING + "," + UPDATED_LOCATION_STRING);
+
+        // Get all the restaurantLocationList where locationString equals to UPDATED_LOCATION_STRING
+        defaultRestaurantLocationShouldNotBeFound("locationString.in=" + UPDATED_LOCATION_STRING);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRestaurantLocationsByLocationStringIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        restaurantLocationRepository.saveAndFlush(restaurantLocation);
+
+        // Get all the restaurantLocationList where locationString is not null
+        defaultRestaurantLocationShouldBeFound("locationString.specified=true");
+
+        // Get all the restaurantLocationList where locationString is null
+        defaultRestaurantLocationShouldNotBeFound("locationString.specified=false");
+    }
+
+    @Test
+    @Transactional
+    public void getAllRestaurantLocationsByRestaurantIsEqualToSomething() throws Exception {
+        // Get already existing entity
+        Restaurant restaurant = restaurantLocation.getRestaurant();
+        restaurantLocationRepository.saveAndFlush(restaurantLocation);
+        Long restaurantId = restaurant.getId();
+
+        // Get all the restaurantLocationList where restaurant equals to restaurantId
+        defaultRestaurantLocationShouldBeFound("restaurantId.equals=" + restaurantId);
+
+        // Get all the restaurantLocationList where restaurant equals to restaurantId + 1
+        defaultRestaurantLocationShouldNotBeFound("restaurantId.equals=" + (restaurantId + 1));
+    }
+
+    /**
+     * Executes the search, and checks that the default entity is returned.
+     */
+    private void defaultRestaurantLocationShouldBeFound(String filter) throws Exception {
+        restRestaurantLocationMockMvc.perform(get("/api/restaurant-locations?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$.[*].id").value(hasItem(restaurantLocation.getId().intValue())))
+            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
+            .andExpect(jsonPath("$.[*].locationString").value(hasItem(DEFAULT_LOCATION_STRING)));
+
+        // Check, that the count call also returns 1
+        restRestaurantLocationMockMvc.perform(get("/api/restaurant-locations/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().string("1"));
+    }
+
+    /**
+     * Executes the search, and checks that the default entity is not returned.
+     */
+    private void defaultRestaurantLocationShouldNotBeFound(String filter) throws Exception {
+        restRestaurantLocationMockMvc.perform(get("/api/restaurant-locations?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$").isEmpty());
+
+        // Check, that the count call also returns 0
+        restRestaurantLocationMockMvc.perform(get("/api/restaurant-locations/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().string("0"));
+    }
+
+
+    @Test
+    @Transactional
     public void getNonExistingRestaurantLocation() throws Exception {
         // Get the restaurantLocation
         restRestaurantLocationMockMvc.perform(get("/api/restaurant-locations/{id}", Long.MAX_VALUE))
@@ -223,7 +359,7 @@ public class RestaurantLocationResourceIT {
     @Transactional
     public void updateRestaurantLocation() throws Exception {
         // Initialize the database
-        restaurantLocationRepository.saveAndFlush(restaurantLocation);
+        restaurantLocationService.save(restaurantLocation);
 
         int databaseSizeBeforeUpdate = restaurantLocationRepository.findAll().size();
 
@@ -270,7 +406,7 @@ public class RestaurantLocationResourceIT {
     @Transactional
     public void deleteRestaurantLocation() throws Exception {
         // Initialize the database
-        restaurantLocationRepository.saveAndFlush(restaurantLocation);
+        restaurantLocationService.save(restaurantLocation);
 
         int databaseSizeBeforeDelete = restaurantLocationRepository.findAll().size();
 

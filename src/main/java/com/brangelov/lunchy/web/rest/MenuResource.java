@@ -1,9 +1,10 @@
 package com.brangelov.lunchy.web.rest;
 
 import com.brangelov.lunchy.domain.Menu;
-import com.brangelov.lunchy.repository.MenuRepository;
+import com.brangelov.lunchy.service.MenuQueryService;
+import com.brangelov.lunchy.service.MenuService;
+import com.brangelov.lunchy.service.dto.MenuCriteria;
 import com.brangelov.lunchy.web.rest.errors.BadRequestAlertException;
-
 import io.github.jhipster.web.util.HeaderUtil;
 import io.github.jhipster.web.util.PaginationUtil;
 import io.github.jhipster.web.util.ResponseUtil;
@@ -13,16 +14,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -40,10 +39,13 @@ public class MenuResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
-    private final MenuRepository menuRepository;
+    private final MenuService menuService;
 
-    public MenuResource(MenuRepository menuRepository) {
-        this.menuRepository = menuRepository;
+    private final MenuQueryService menuQueryService;
+
+    public MenuResource(MenuService menuService, MenuQueryService menuQueryService) {
+        this.menuService = menuService;
+        this.menuQueryService = menuQueryService;
     }
 
     /**
@@ -59,7 +61,7 @@ public class MenuResource {
         if (menu.getId() != null) {
             throw new BadRequestAlertException("A new menu cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        Menu result = menuRepository.save(menu);
+        Menu result = menuService.save(menu);
         return ResponseEntity.created(new URI("/api/menus/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
             .body(result);
@@ -80,7 +82,7 @@ public class MenuResource {
         if (menu.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        Menu result = menuRepository.save(menu);
+        Menu result = menuService.save(menu);
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, menu.getId().toString()))
             .body(result);
@@ -90,14 +92,27 @@ public class MenuResource {
      * {@code GET  /menus} : get all the menus.
      *
      * @param pageable the pagination information.
+     * @param criteria the criteria which the requested entities should match.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of menus in body.
      */
     @GetMapping("/menus")
-    public ResponseEntity<List<Menu>> getAllMenus(Pageable pageable, @RequestParam MultiValueMap<String, String> queryParams, UriComponentsBuilder uriBuilder) {
-        log.debug("REST request to get a page of Menus");
-        Page<Menu> page = menuRepository.findAll(pageable);
+    public ResponseEntity<List<Menu>> getAllMenus(MenuCriteria criteria, Pageable pageable, @RequestParam MultiValueMap<String, String> queryParams, UriComponentsBuilder uriBuilder) {
+        log.debug("REST request to get Menus by criteria: {}", criteria);
+        Page<Menu> page = menuQueryService.findByCriteria(criteria, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(uriBuilder.queryParams(queryParams), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    /**
+    * {@code GET  /menus/count} : count all the menus.
+    *
+    * @param criteria the criteria which the requested entities should match.
+    * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
+    */
+    @GetMapping("/menus/count")
+    public ResponseEntity<Long> countMenus(MenuCriteria criteria) {
+        log.debug("REST request to count Menus by criteria: {}", criteria);
+        return ResponseEntity.ok().body(menuQueryService.countByCriteria(criteria));
     }
 
     /**
@@ -109,7 +124,7 @@ public class MenuResource {
     @GetMapping("/menus/{id}")
     public ResponseEntity<Menu> getMenu(@PathVariable Long id) {
         log.debug("REST request to get Menu : {}", id);
-        Optional<Menu> menu = menuRepository.findById(id);
+        Optional<Menu> menu = menuService.findOne(id);
         return ResponseUtil.wrapOrNotFound(menu);
     }
 
@@ -122,7 +137,7 @@ public class MenuResource {
     @DeleteMapping("/menus/{id}")
     public ResponseEntity<Void> deleteMenu(@PathVariable Long id) {
         log.debug("REST request to delete Menu : {}", id);
-        menuRepository.deleteById(id);
+        menuService.delete(id);
         return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build();
     }
 }

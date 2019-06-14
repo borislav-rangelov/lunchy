@@ -1,11 +1,12 @@
 package com.brangelov.lunchy.web.rest;
 
 import com.brangelov.lunchy.LunchyApp;
-import com.brangelov.lunchy.domain.MenuItem;
 import com.brangelov.lunchy.domain.Menu;
+import com.brangelov.lunchy.domain.MenuItem;
 import com.brangelov.lunchy.repository.MenuItemRepository;
+import com.brangelov.lunchy.service.MenuItemQueryService;
+import com.brangelov.lunchy.service.MenuItemService;
 import com.brangelov.lunchy.web.rest.errors.ExceptionTranslator;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
@@ -50,6 +51,12 @@ public class MenuItemResourceIT {
     private MenuItemRepository menuItemRepository;
 
     @Autowired
+    private MenuItemService menuItemService;
+
+    @Autowired
+    private MenuItemQueryService menuItemQueryService;
+
+    @Autowired
     private MappingJackson2HttpMessageConverter jacksonMessageConverter;
 
     @Autowired
@@ -71,7 +78,7 @@ public class MenuItemResourceIT {
     @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        final MenuItemResource menuItemResource = new MenuItemResource(menuItemRepository);
+        final MenuItemResource menuItemResource = new MenuItemResource(menuItemService, menuItemQueryService);
         this.restMenuItemMockMvc = MockMvcBuilders.standaloneSetup(menuItemResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)
@@ -265,6 +272,269 @@ public class MenuItemResourceIT {
 
     @Test
     @Transactional
+    public void getAllMenuItemsByNameIsEqualToSomething() throws Exception {
+        // Initialize the database
+        menuItemRepository.saveAndFlush(menuItem);
+
+        // Get all the menuItemList where name equals to DEFAULT_NAME
+        defaultMenuItemShouldBeFound("name.equals=" + DEFAULT_NAME);
+
+        // Get all the menuItemList where name equals to UPDATED_NAME
+        defaultMenuItemShouldNotBeFound("name.equals=" + UPDATED_NAME);
+    }
+
+    @Test
+    @Transactional
+    public void getAllMenuItemsByNameIsInShouldWork() throws Exception {
+        // Initialize the database
+        menuItemRepository.saveAndFlush(menuItem);
+
+        // Get all the menuItemList where name in DEFAULT_NAME or UPDATED_NAME
+        defaultMenuItemShouldBeFound("name.in=" + DEFAULT_NAME + "," + UPDATED_NAME);
+
+        // Get all the menuItemList where name equals to UPDATED_NAME
+        defaultMenuItemShouldNotBeFound("name.in=" + UPDATED_NAME);
+    }
+
+    @Test
+    @Transactional
+    public void getAllMenuItemsByNameIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        menuItemRepository.saveAndFlush(menuItem);
+
+        // Get all the menuItemList where name is not null
+        defaultMenuItemShouldBeFound("name.specified=true");
+
+        // Get all the menuItemList where name is null
+        defaultMenuItemShouldNotBeFound("name.specified=false");
+    }
+
+    @Test
+    @Transactional
+    public void getAllMenuItemsByDescriptionIsEqualToSomething() throws Exception {
+        // Initialize the database
+        menuItemRepository.saveAndFlush(menuItem);
+
+        // Get all the menuItemList where description equals to DEFAULT_DESCRIPTION
+        defaultMenuItemShouldBeFound("description.equals=" + DEFAULT_DESCRIPTION);
+
+        // Get all the menuItemList where description equals to UPDATED_DESCRIPTION
+        defaultMenuItemShouldNotBeFound("description.equals=" + UPDATED_DESCRIPTION);
+    }
+
+    @Test
+    @Transactional
+    public void getAllMenuItemsByDescriptionIsInShouldWork() throws Exception {
+        // Initialize the database
+        menuItemRepository.saveAndFlush(menuItem);
+
+        // Get all the menuItemList where description in DEFAULT_DESCRIPTION or UPDATED_DESCRIPTION
+        defaultMenuItemShouldBeFound("description.in=" + DEFAULT_DESCRIPTION + "," + UPDATED_DESCRIPTION);
+
+        // Get all the menuItemList where description equals to UPDATED_DESCRIPTION
+        defaultMenuItemShouldNotBeFound("description.in=" + UPDATED_DESCRIPTION);
+    }
+
+    @Test
+    @Transactional
+    public void getAllMenuItemsByDescriptionIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        menuItemRepository.saveAndFlush(menuItem);
+
+        // Get all the menuItemList where description is not null
+        defaultMenuItemShouldBeFound("description.specified=true");
+
+        // Get all the menuItemList where description is null
+        defaultMenuItemShouldNotBeFound("description.specified=false");
+    }
+
+    @Test
+    @Transactional
+    public void getAllMenuItemsByPriceIsEqualToSomething() throws Exception {
+        // Initialize the database
+        menuItemRepository.saveAndFlush(menuItem);
+
+        // Get all the menuItemList where price equals to DEFAULT_PRICE
+        defaultMenuItemShouldBeFound("price.equals=" + DEFAULT_PRICE);
+
+        // Get all the menuItemList where price equals to UPDATED_PRICE
+        defaultMenuItemShouldNotBeFound("price.equals=" + UPDATED_PRICE);
+    }
+
+    @Test
+    @Transactional
+    public void getAllMenuItemsByPriceIsInShouldWork() throws Exception {
+        // Initialize the database
+        menuItemRepository.saveAndFlush(menuItem);
+
+        // Get all the menuItemList where price in DEFAULT_PRICE or UPDATED_PRICE
+        defaultMenuItemShouldBeFound("price.in=" + DEFAULT_PRICE + "," + UPDATED_PRICE);
+
+        // Get all the menuItemList where price equals to UPDATED_PRICE
+        defaultMenuItemShouldNotBeFound("price.in=" + UPDATED_PRICE);
+    }
+
+    @Test
+    @Transactional
+    public void getAllMenuItemsByPriceIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        menuItemRepository.saveAndFlush(menuItem);
+
+        // Get all the menuItemList where price is not null
+        defaultMenuItemShouldBeFound("price.specified=true");
+
+        // Get all the menuItemList where price is null
+        defaultMenuItemShouldNotBeFound("price.specified=false");
+    }
+
+    @Test
+    @Transactional
+    public void getAllMenuItemsByPriceIsGreaterThanOrEqualToSomething() throws Exception {
+        // Initialize the database
+        menuItemRepository.saveAndFlush(menuItem);
+
+        // Get all the menuItemList where price greater than or equals to DEFAULT_PRICE
+        defaultMenuItemShouldBeFound("price.greaterOrEqualThan=" + DEFAULT_PRICE);
+
+        // Get all the menuItemList where price greater than or equals to UPDATED_PRICE
+        defaultMenuItemShouldNotBeFound("price.greaterOrEqualThan=" + UPDATED_PRICE);
+    }
+
+    @Test
+    @Transactional
+    public void getAllMenuItemsByPriceIsLessThanSomething() throws Exception {
+        // Initialize the database
+        menuItemRepository.saveAndFlush(menuItem);
+
+        // Get all the menuItemList where price less than or equals to DEFAULT_PRICE
+        defaultMenuItemShouldNotBeFound("price.lessThan=" + DEFAULT_PRICE);
+
+        // Get all the menuItemList where price less than or equals to UPDATED_PRICE
+        defaultMenuItemShouldBeFound("price.lessThan=" + UPDATED_PRICE);
+    }
+
+
+    @Test
+    @Transactional
+    public void getAllMenuItemsByGramsIsEqualToSomething() throws Exception {
+        // Initialize the database
+        menuItemRepository.saveAndFlush(menuItem);
+
+        // Get all the menuItemList where grams equals to DEFAULT_GRAMS
+        defaultMenuItemShouldBeFound("grams.equals=" + DEFAULT_GRAMS);
+
+        // Get all the menuItemList where grams equals to UPDATED_GRAMS
+        defaultMenuItemShouldNotBeFound("grams.equals=" + UPDATED_GRAMS);
+    }
+
+    @Test
+    @Transactional
+    public void getAllMenuItemsByGramsIsInShouldWork() throws Exception {
+        // Initialize the database
+        menuItemRepository.saveAndFlush(menuItem);
+
+        // Get all the menuItemList where grams in DEFAULT_GRAMS or UPDATED_GRAMS
+        defaultMenuItemShouldBeFound("grams.in=" + DEFAULT_GRAMS + "," + UPDATED_GRAMS);
+
+        // Get all the menuItemList where grams equals to UPDATED_GRAMS
+        defaultMenuItemShouldNotBeFound("grams.in=" + UPDATED_GRAMS);
+    }
+
+    @Test
+    @Transactional
+    public void getAllMenuItemsByGramsIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        menuItemRepository.saveAndFlush(menuItem);
+
+        // Get all the menuItemList where grams is not null
+        defaultMenuItemShouldBeFound("grams.specified=true");
+
+        // Get all the menuItemList where grams is null
+        defaultMenuItemShouldNotBeFound("grams.specified=false");
+    }
+
+    @Test
+    @Transactional
+    public void getAllMenuItemsByGramsIsGreaterThanOrEqualToSomething() throws Exception {
+        // Initialize the database
+        menuItemRepository.saveAndFlush(menuItem);
+
+        // Get all the menuItemList where grams greater than or equals to DEFAULT_GRAMS
+        defaultMenuItemShouldBeFound("grams.greaterOrEqualThan=" + DEFAULT_GRAMS);
+
+        // Get all the menuItemList where grams greater than or equals to UPDATED_GRAMS
+        defaultMenuItemShouldNotBeFound("grams.greaterOrEqualThan=" + UPDATED_GRAMS);
+    }
+
+    @Test
+    @Transactional
+    public void getAllMenuItemsByGramsIsLessThanSomething() throws Exception {
+        // Initialize the database
+        menuItemRepository.saveAndFlush(menuItem);
+
+        // Get all the menuItemList where grams less than or equals to DEFAULT_GRAMS
+        defaultMenuItemShouldNotBeFound("grams.lessThan=" + DEFAULT_GRAMS);
+
+        // Get all the menuItemList where grams less than or equals to UPDATED_GRAMS
+        defaultMenuItemShouldBeFound("grams.lessThan=" + UPDATED_GRAMS);
+    }
+
+
+    @Test
+    @Transactional
+    public void getAllMenuItemsByMenuIsEqualToSomething() throws Exception {
+        // Get already existing entity
+        Menu menu = menuItem.getMenu();
+        menuItemRepository.saveAndFlush(menuItem);
+        Long menuId = menu.getId();
+
+        // Get all the menuItemList where menu equals to menuId
+        defaultMenuItemShouldBeFound("menuId.equals=" + menuId);
+
+        // Get all the menuItemList where menu equals to menuId + 1
+        defaultMenuItemShouldNotBeFound("menuId.equals=" + (menuId + 1));
+    }
+
+    /**
+     * Executes the search, and checks that the default entity is returned.
+     */
+    private void defaultMenuItemShouldBeFound(String filter) throws Exception {
+        restMenuItemMockMvc.perform(get("/api/menu-items?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$.[*].id").value(hasItem(menuItem.getId().intValue())))
+            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
+            .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
+            .andExpect(jsonPath("$.[*].price").value(hasItem(DEFAULT_PRICE)))
+            .andExpect(jsonPath("$.[*].grams").value(hasItem(DEFAULT_GRAMS)));
+
+        // Check, that the count call also returns 1
+        restMenuItemMockMvc.perform(get("/api/menu-items/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().string("1"));
+    }
+
+    /**
+     * Executes the search, and checks that the default entity is not returned.
+     */
+    private void defaultMenuItemShouldNotBeFound(String filter) throws Exception {
+        restMenuItemMockMvc.perform(get("/api/menu-items?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$").isEmpty());
+
+        // Check, that the count call also returns 0
+        restMenuItemMockMvc.perform(get("/api/menu-items/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().string("0"));
+    }
+
+
+    @Test
+    @Transactional
     public void getNonExistingMenuItem() throws Exception {
         // Get the menuItem
         restMenuItemMockMvc.perform(get("/api/menu-items/{id}", Long.MAX_VALUE))
@@ -275,7 +545,7 @@ public class MenuItemResourceIT {
     @Transactional
     public void updateMenuItem() throws Exception {
         // Initialize the database
-        menuItemRepository.saveAndFlush(menuItem);
+        menuItemService.save(menuItem);
 
         int databaseSizeBeforeUpdate = menuItemRepository.findAll().size();
 
@@ -326,7 +596,7 @@ public class MenuItemResourceIT {
     @Transactional
     public void deleteMenuItem() throws Exception {
         // Initialize the database
-        menuItemRepository.saveAndFlush(menuItem);
+        menuItemService.save(menuItem);
 
         int databaseSizeBeforeDelete = menuItemRepository.findAll().size();
 

@@ -1,7 +1,8 @@
 package com.brangelov.lunchy.repository;
 
 import com.brangelov.lunchy.domain.RestaurantLocation;
-import org.springframework.data.jpa.repository.*;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 
@@ -10,6 +11,6 @@ import org.springframework.stereotype.Repository;
  */
 @SuppressWarnings("unused")
 @Repository
-public interface RestaurantLocationRepository extends JpaRepository<RestaurantLocation, Long> {
+public interface RestaurantLocationRepository extends JpaRepository<RestaurantLocation, Long>, JpaSpecificationExecutor<RestaurantLocation> {
 
 }

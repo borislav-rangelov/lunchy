@@ -47,3 +47,7 @@ relationship OneToMany {
 relationship OneToMany {
     Menu to MenuItem{menu required}
 }
+
+service * with serviceImpl
+filter *
+dto * with mapstruct

@@ -44,8 +44,8 @@
     "entityTableName": "menu",
     "dto": "no",
     "pagination": "pager",
-    "service": "no",
-    "jpaMetamodelFiltering": false,
+    "service": "serviceImpl",
+    "jpaMetamodelFiltering": true,
     "fluentMethods": true,
     "clientRootFolder": "",
     "applications": "*"

@@ -53,8 +53,8 @@
     "entityTableName": "menu_item",
     "dto": "no",
     "pagination": "infinite-scroll",
-    "service": "no",
-    "jpaMetamodelFiltering": false,
+    "service": "serviceImpl",
+    "jpaMetamodelFiltering": true,
     "fluentMethods": true,
     "clientRootFolder": "",
     "applications": "*"

@@ -1,10 +1,13 @@
 package com.brangelov.lunchy.web.rest;
 
 import com.brangelov.lunchy.LunchyApp;
+import com.brangelov.lunchy.domain.Menu;
 import com.brangelov.lunchy.domain.Restaurant;
+import com.brangelov.lunchy.domain.RestaurantLocation;
 import com.brangelov.lunchy.repository.RestaurantRepository;
+import com.brangelov.lunchy.service.RestaurantQueryService;
+import com.brangelov.lunchy.service.RestaurantService;
 import com.brangelov.lunchy.web.rest.errors.ExceptionTranslator;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
@@ -40,6 +43,12 @@ public class RestaurantResourceIT {
     private RestaurantRepository restaurantRepository;
 
     @Autowired
+    private RestaurantService restaurantService;
+
+    @Autowired
+    private RestaurantQueryService restaurantQueryService;
+
+    @Autowired
     private MappingJackson2HttpMessageConverter jacksonMessageConverter;
 
     @Autowired
@@ -61,7 +70,7 @@ public class RestaurantResourceIT {
     @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        final RestaurantResource restaurantResource = new RestaurantResource(restaurantRepository);
+        final RestaurantResource restaurantResource = new RestaurantResource(restaurantService, restaurantQueryService);
         this.restRestaurantMockMvc = MockMvcBuilders.standaloneSetup(restaurantResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)
@@ -184,6 +193,117 @@ public class RestaurantResourceIT {
 
     @Test
     @Transactional
+    public void getAllRestaurantsByNameIsEqualToSomething() throws Exception {
+        // Initialize the database
+        restaurantRepository.saveAndFlush(restaurant);
+
+        // Get all the restaurantList where name equals to DEFAULT_NAME
+        defaultRestaurantShouldBeFound("name.equals=" + DEFAULT_NAME);
+
+        // Get all the restaurantList where name equals to UPDATED_NAME
+        defaultRestaurantShouldNotBeFound("name.equals=" + UPDATED_NAME);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRestaurantsByNameIsInShouldWork() throws Exception {
+        // Initialize the database
+        restaurantRepository.saveAndFlush(restaurant);
+
+        // Get all the restaurantList where name in DEFAULT_NAME or UPDATED_NAME
+        defaultRestaurantShouldBeFound("name.in=" + DEFAULT_NAME + "," + UPDATED_NAME);
+
+        // Get all the restaurantList where name equals to UPDATED_NAME
+        defaultRestaurantShouldNotBeFound("name.in=" + UPDATED_NAME);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRestaurantsByNameIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        restaurantRepository.saveAndFlush(restaurant);
+
+        // Get all the restaurantList where name is not null
+        defaultRestaurantShouldBeFound("name.specified=true");
+
+        // Get all the restaurantList where name is null
+        defaultRestaurantShouldNotBeFound("name.specified=false");
+    }
+
+    @Test
+    @Transactional
+    public void getAllRestaurantsByRestaurantLocationIsEqualToSomething() throws Exception {
+        // Initialize the database
+        RestaurantLocation restaurantLocation = RestaurantLocationResourceIT.createEntity(em);
+        em.persist(restaurantLocation);
+        em.flush();
+        restaurant.addRestaurantLocation(restaurantLocation);
+        restaurantRepository.saveAndFlush(restaurant);
+        Long restaurantLocationId = restaurantLocation.getId();
+
+        // Get all the restaurantList where restaurantLocation equals to restaurantLocationId
+        defaultRestaurantShouldBeFound("restaurantLocationId.equals=" + restaurantLocationId);
+
+        // Get all the restaurantList where restaurantLocation equals to restaurantLocationId + 1
+        defaultRestaurantShouldNotBeFound("restaurantLocationId.equals=" + (restaurantLocationId + 1));
+    }
+
+
+    @Test
+    @Transactional
+    public void getAllRestaurantsByMenuIsEqualToSomething() throws Exception {
+        // Initialize the database
+        Menu menu = MenuResourceIT.createEntity(em);
+        em.persist(menu);
+        em.flush();
+        restaurant.addMenu(menu);
+        restaurantRepository.saveAndFlush(restaurant);
+        Long menuId = menu.getId();
+
+        // Get all the restaurantList where menu equals to menuId
+        defaultRestaurantShouldBeFound("menuId.equals=" + menuId);
+
+        // Get all the restaurantList where menu equals to menuId + 1
+        defaultRestaurantShouldNotBeFound("menuId.equals=" + (menuId + 1));
+    }
+
+    /**
+     * Executes the search, and checks that the default entity is returned.
+     */
+    private void defaultRestaurantShouldBeFound(String filter) throws Exception {
+        restRestaurantMockMvc.perform(get("/api/restaurants?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$.[*].id").value(hasItem(restaurant.getId().intValue())))
+            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)));
+
+        // Check, that the count call also returns 1
+        restRestaurantMockMvc.perform(get("/api/restaurants/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().string("1"));
+    }
+
+    /**
+     * Executes the search, and checks that the default entity is not returned.
+     */
+    private void defaultRestaurantShouldNotBeFound(String filter) throws Exception {
+        restRestaurantMockMvc.perform(get("/api/restaurants?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$").isEmpty());
+
+        // Check, that the count call also returns 0
+        restRestaurantMockMvc.perform(get("/api/restaurants/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().string("0"));
+    }
+
+
+    @Test
+    @Transactional
     public void getNonExistingRestaurant() throws Exception {
         // Get the restaurant
         restRestaurantMockMvc.perform(get("/api/restaurants/{id}", Long.MAX_VALUE))
@@ -194,7 +314,7 @@ public class RestaurantResourceIT {
     @Transactional
     public void updateRestaurant() throws Exception {
         // Initialize the database
-        restaurantRepository.saveAndFlush(restaurant);
+        restaurantService.save(restaurant);
 
         int databaseSizeBeforeUpdate = restaurantRepository.findAll().size();
 
@@ -239,7 +359,7 @@ public class RestaurantResourceIT {
     @Transactional
     public void deleteRestaurant() throws Exception {
         // Initialize the database
-        restaurantRepository.saveAndFlush(restaurant);
+        restaurantService.save(restaurant);
 
         int databaseSizeBeforeDelete = restaurantRepository.findAll().size();
 

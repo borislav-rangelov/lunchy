@@ -1,9 +1,10 @@
 package com.brangelov.lunchy.web.rest;
 
 import com.brangelov.lunchy.domain.Restaurant;
-import com.brangelov.lunchy.repository.RestaurantRepository;
+import com.brangelov.lunchy.service.RestaurantQueryService;
+import com.brangelov.lunchy.service.RestaurantService;
+import com.brangelov.lunchy.service.dto.RestaurantCriteria;
 import com.brangelov.lunchy.web.rest.errors.BadRequestAlertException;
-
 import io.github.jhipster.web.util.HeaderUtil;
 import io.github.jhipster.web.util.PaginationUtil;
 import io.github.jhipster.web.util.ResponseUtil;
@@ -13,16 +14,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -40,10 +39,13 @@ public class RestaurantResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
-    private final RestaurantRepository restaurantRepository;
+    private final RestaurantService restaurantService;
 
-    public RestaurantResource(RestaurantRepository restaurantRepository) {
-        this.restaurantRepository = restaurantRepository;
+    private final RestaurantQueryService restaurantQueryService;
+
+    public RestaurantResource(RestaurantService restaurantService, RestaurantQueryService restaurantQueryService) {
+        this.restaurantService = restaurantService;
+        this.restaurantQueryService = restaurantQueryService;
     }
 
     /**
@@ -59,7 +61,7 @@ public class RestaurantResource {
         if (restaurant.getId() != null) {
             throw new BadRequestAlertException("A new restaurant cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        Restaurant result = restaurantRepository.save(restaurant);
+        Restaurant result = restaurantService.save(restaurant);
         return ResponseEntity.created(new URI("/api/restaurants/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
             .body(result);
@@ -80,7 +82,7 @@ public class RestaurantResource {
         if (restaurant.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        Restaurant result = restaurantRepository.save(restaurant);
+        Restaurant result = restaurantService.save(restaurant);
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, restaurant.getId().toString()))
             .body(result);
@@ -90,14 +92,27 @@ public class RestaurantResource {
      * {@code GET  /restaurants} : get all the restaurants.
      *
      * @param pageable the pagination information.
+     * @param criteria the criteria which the requested entities should match.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of restaurants in body.
      */
     @GetMapping("/restaurants")
-    public ResponseEntity<List<Restaurant>> getAllRestaurants(Pageable pageable, @RequestParam MultiValueMap<String, String> queryParams, UriComponentsBuilder uriBuilder) {
-        log.debug("REST request to get a page of Restaurants");
-        Page<Restaurant> page = restaurantRepository.findAll(pageable);
+    public ResponseEntity<List<Restaurant>> getAllRestaurants(RestaurantCriteria criteria, Pageable pageable, @RequestParam MultiValueMap<String, String> queryParams, UriComponentsBuilder uriBuilder) {
+        log.debug("REST request to get Restaurants by criteria: {}", criteria);
+        Page<Restaurant> page = restaurantQueryService.findByCriteria(criteria, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(uriBuilder.queryParams(queryParams), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    /**
+    * {@code GET  /restaurants/count} : count all the restaurants.
+    *
+    * @param criteria the criteria which the requested entities should match.
+    * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
+    */
+    @GetMapping("/restaurants/count")
+    public ResponseEntity<Long> countRestaurants(RestaurantCriteria criteria) {
+        log.debug("REST request to count Restaurants by criteria: {}", criteria);
+        return ResponseEntity.ok().body(restaurantQueryService.countByCriteria(criteria));
     }
 
     /**
@@ -109,7 +124,7 @@ public class RestaurantResource {
     @GetMapping("/restaurants/{id}")
     public ResponseEntity<Restaurant> getRestaurant(@PathVariable Long id) {
         log.debug("REST request to get Restaurant : {}", id);
-        Optional<Restaurant> restaurant = restaurantRepository.findById(id);
+        Optional<Restaurant> restaurant = restaurantService.findOne(id);
         return ResponseUtil.wrapOrNotFound(restaurant);
     }
 
@@ -122,7 +137,7 @@ public class RestaurantResource {
     @DeleteMapping("/restaurants/{id}")
     public ResponseEntity<Void> deleteRestaurant(@PathVariable Long id) {
         log.debug("REST request to delete Restaurant : {}", id);
-        restaurantRepository.deleteById(id);
+        restaurantService.delete(id);
         return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build();
     }
 }
