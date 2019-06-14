@@ -4,27 +4,28 @@ import { Row, Col, Alert, Card, CardImg, CardText, CardBody, CardTitle, CardSubt
 
 import { IRootState } from 'app/shared/reducers';
 import { getEntities } from 'app/entities/restaurant/restaurant.reducer';
+import { withRouter, RouteComponentProps } from 'react-router';
 
-export interface IFavoriteRestaurantsProp extends StateProps, DispatchProps {}
+export interface IFavoriteRestaurantsProp extends StateProps, DispatchProps, RouteComponentProps<{ id: string }> {}
 
 export class FavoriteRestaurants extends React.Component<IFavoriteRestaurantsProp> {
   componentDidMount() {
     this.props.getEntities();
   }
 
+  onRestaurantClick = (event): void => {
+    this.props.history.push(`/preview-restaurant/${event.target.dataset.id}`);
+  };
+
   render() {
     const { favoriteRestaurants } = this.props;
     return (
       <Row>
         {favoriteRestaurants.map(fr => (
-          <Col md="3" key={fr.id}>
+          <Col md="3" key={fr.id} data-id={fr.id} onClick={this.onRestaurantClick}>
             <Card>
-              <CardImg top width="100%" src=" http://placekitten.com/300/200" alt="Card image cap" />
               <CardBody>
                 <CardTitle>{fr.name}</CardTitle>
-                <CardSubtitle>Card subtitle</CardSubtitle>
-                <CardText>Some quick example text to build on the card title and make up the bulk of the card's content.</CardText>
-                <Button>Button</Button>
               </CardBody>
             </Card>
           </Col>
@@ -45,7 +46,9 @@ const mapDispatchToProps = { getEntities };
 type StateProps = ReturnType<typeof mapStateToProps>;
 type DispatchProps = typeof mapDispatchToProps;
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(FavoriteRestaurants);
+export default withRouter(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )(FavoriteRestaurants)
+);

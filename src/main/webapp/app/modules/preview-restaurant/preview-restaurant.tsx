@@ -40,7 +40,7 @@ export class PreviewRestaurant extends React.Component<IPreviewRestaurantProp> {
 
           {this.state.menu &&
             this.state.menu.map(menu => (
-              <div>
+              <div key={menu.id}>
                 <h5>{menu.name}</h5>
                 <table className="table">
                   <thead>
@@ -53,7 +53,7 @@ export class PreviewRestaurant extends React.Component<IPreviewRestaurantProp> {
                   <tbody>
                     {menu.menuItems &&
                       menu.menuItems.map(item => (
-                        <tr>
+                        <tr key={item.id}>
                           <td>{item.name}</td>
                           <td>{item.grams}</td>
                           <td>{item.price}</td>
